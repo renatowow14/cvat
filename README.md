@@ -1,6 +1,6 @@
-# CVAT - Anotacao Automatica com YOLOv3, DEXTR, SAM 1 e SAM 2 via Docker + Nuclio
+# CVAT - Anotação Automática com YOLOv3, DEXTR, SAM 1 e SAM 2 via Docker + Nuclio
 
-Este repositório/documentação mostra como subir localmente o **CVAT** com suporte a **anotação automática e assistida**, utilizando modelos baseados em deep learning como **YOLOv3**, **DEXTR**, **SAM 1** e **SAM 2**, via **Nuclio**.
+Este repositório/documentação demonstra como configurar localmente o **CVAT** com suporte à **anotação automática e assistida**, utilizando modelos baseados em deep learning como **YOLOv3**, **DEXTR**, **SAM 1** e **SAM 2**, integrados via **Nuclio**.
 
 ---
 
@@ -8,7 +8,7 @@ Este repositório/documentação mostra como subir localmente o **CVAT** com sup
 
 - Docker + Docker Compose instalados
 - Sistema operacional compatível (Ubuntu 20.04+, WSL2 ou Mac)
-- GPU + NVIDIA Container Toolkit (para SAM 1 e SAM 2)
+- GPU + NVIDIA Container Toolkit (necessário para SAM 1 e SAM 2)
 
 ---
 
@@ -23,21 +23,21 @@ cd cvat
 
 ## ⚙️ Subindo o CVAT com suporte a modelos serverless
 
-Use o `docker-compose.serverless.yml` para ativar os modelos automáticos (YOLO, DEXTR, SAM, etc):
+Utilizar o `docker-compose.serverless.yml` para ativar os modelos automáticos (YOLO, DEXTR, SAM, etc):
 
 ```bash
 docker compose -f docker-compose.yml -f components/serverless/docker-compose.serverless.yml up -d --build
 ```
 
-> ⚠️ Aguarde o download e inicialização de todos os containers (leva alguns minutos na primeira vez).
+> ⚠️ É necessário aguardar o download e inicialização de todos os containers (pode levar alguns minutos na primeira execução).
 
 ---
 
 ## 🌐 Expondo o CVAT para a rede local (WAN)
 
-Por padrão, o CVAT escuta apenas no `localhost`. Para permitir acesso de outros dispositivos da rede (como `http://192.168.1.15:8080`):
+Por padrão, o CVAT escuta apenas no `localhost`. Para permitir o acesso a partir de outros dispositivos da rede (como `http://192.168.1.15:8080`):
 
-1. No `docker-compose.yml`, altere os blocos de labels:
+1. No arquivo `docker-compose.yml`, ajustar os blocos de labels:
 
 ### `cvat_server`:
 ```yaml
@@ -57,19 +57,19 @@ labels:
   traefik.http.routers.cvat-ui.entrypoints: web
 ```
 
-2. Certifique-se que o serviço `traefik` está expondo as portas:
+2. Garantir que o serviço `traefik` esteja expondo as portas corretamente:
 ```yaml
 ports:
   - 8080:8080
 ```
 
-3. Reinicie os serviços:
+3. Reiniciar os serviços:
 ```bash
 docker compose down -v
 docker compose -f docker-compose.yml -f components/serverless/docker-compose.serverless.yml up -d --build
 ```
 
-Agora, acesse via IP da máquina:
+A partir disso, o acesso poderá ser realizado via IP da máquina:
 ```
 http://192.168.1.15:8080
 ```
@@ -95,16 +95,9 @@ http://192.168.1.15:8080
 ## 📥 Instalação do Nuclio CLI (`nuctl`)
 
 ```bash
-# Baixar a versão mais recente do nuctl
 curl -Lo nuctl https://github.com/nuclio/nuclio/releases/download/1.13.23/nuctl-1.13.23-linux-amd64
-
-# Tornar executável
 chmod +x nuctl
-
-# Mover para um diretório do PATH
 sudo mv nuctl /usr/local/bin/
-
-# Verificar a instalação
 nuctl version
 ```
 
@@ -115,14 +108,10 @@ nuctl version
 ## 💻 Instalação de drivers NVIDIA + CUDA Toolkit (para SAM 1 e SAM 2)
 
 ```bash
-# Instalar suporte a drivers automáticos e listar opções
 apt install ubuntu-drivers-common -y
 ubuntu-drivers devices
-
-# Instalar driver recomendado (ex: 550)
 sudo apt install nvidia-driver-550 -y
 
-# Instalar toolkit para containers NVIDIA
 distribution=$(. /etc/os-release; echo $ID$VERSION_ID)
 curl -s -L https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
 curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list \
@@ -133,20 +122,16 @@ sudo apt install -y nvidia-container-toolkit
 sudo nvidia-ctk runtime configure --runtime=docker
 sudo systemctl restart docker
 
-# (Opcional) Instalar GCC se não tiver
 sudo apt-get install gcc -y
 
-# Instalar CUDA Toolkit 12.8
 wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
 sudo dpkg -i cuda-keyring_1.1-1_all.deb
 sudo apt-get update
 sudo apt-get -y install cuda-toolkit-12-8
 
-# Configurar variáveis de ambiente
 export PATH=/usr/local/cuda/bin${PATH:+:$PATH}
 export LD_LIBRARY_PATH=/usr/local/cuda-12.2/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 
-# Testar
 nvcc -V
 ```
 
@@ -159,18 +144,12 @@ nvcc -V
 ./serverless/deploy_cpu.sh serverless/openvino/omz/public/yolo-v3-tf
 ```
 
-> Isso registrará os modelos no painel Nuclio (`http://localhost:8070`) e permitirá seu uso no CVAT.
-
 ---
 
 ## 🧠 Deploy do SAM 1 (GPU)
 
 ```bash
 ./serverless/deploy_gpu.sh serverless/pytorch/facebookresearch/sam
-```
-
-> Reinicie os containers CVAT após o deploy:
-```bash
 docker compose restart
 ```
 
@@ -178,7 +157,7 @@ docker compose restart
 
 ## 🧪 Deploy do SAM 2 (custom, GPU)
 
-1. Clone ou copie os arquivos `function-gpu.yaml`, `main.py`, `model_handler.py` e `requirements.txt` para uma pasta:
+1. Clonar ou copiar os arquivos `function-gpu.yaml`, `main.py`, `model_handler.py` e `requirements.txt` para uma pasta:
 
 ```
 sam2/
@@ -189,13 +168,9 @@ sam2/
       └── requirements.txt
 ```
 
-2. Execute:
+2. Executar:
 ```bash
 ./deploy_gpu.sh sam2/nuclio
-```
-
-3. Reinicie o CVAT:
-```bash
 docker compose restart
 ```
 
@@ -205,14 +180,14 @@ docker compose restart
 
 ## 🧑‍💻 Usando a anotação automática na interface
 
-1. No CVAT, crie uma `Task`
-2. Faça upload de imagens (ex: `lenna.png`)
-3. Crie um label (ex: `person`)
-4. Acesse o Job da imagem
-5. Clique em `Actions → Automatic Annotation`
-6. Escolha o modelo (YOLOv3, DEXTR, SAM 1, SAM 2)
-7. Mapeie os labels e clique em **Annotate**
-8. Clique em **Save**
+1. Criar uma `Task`
+2. Fazer upload de imagens
+3. Criar um label (ex: `person`)
+4. Acessar o Job
+5. Clicar em `Actions → Automatic Annotation`
+6. Escolher o modelo
+7. Mapear os labels e clicar em **Annotate**
+8. Clicar em **Save**
 
 ---
 
@@ -234,6 +209,41 @@ docker compose restart
 
 ---
 
+## 🧪 Como foi feita a personalização do SAM 2 no CVAT
+
+### 📁 Estrutura da função customizada
+
+```
+sam2/
+  └── nuclio/
+      ├── function-gpu.yaml
+      ├── main.py
+      ├── model_handler.py
+      └── requirements.txt
+```
+
+### 🔧 `function-gpu.yaml`
+
+- Define `baseImage` com suporte à GPU (compatível com PyTorch 2.4 e CUDA 12.4)
+- Instala dependências via `directives`
+- Aponta `handler: main:handler`
+- Define uso de GPU via `resources.limits.nvidia.com/gpu: 1`
+- Utiliza variáveis de ambiente para configurar dinamicamente o modelo:
+
+```yaml
+- kind: ENV
+  value: MODEL="sam2_hiera_large.pt"
+- kind: ENV
+  value: MODEL_CFG="sam2_hiera_l.yaml"
+```
+
+### 🧠 `main.py` e `model_handler.py`
+
+- `main.py` expõe uma função HTTP que recebe imagem, pontos e rótulos, delegando à inferência
+- `model_handler.py` executa o carregamento do SAM 2 e gera a máscara, retornando-a em formato compatível com o CVAT
+
+---
+
 ## 📚 Referências
 
 - [CVAT Docs](https://docs.cvat.ai/)
@@ -243,69 +253,8 @@ docker compose restart
 
 ---
 
-## 🧪 Como foi feita a personalização do SAM 2 no CVAT
+## ✅ TODO
 
-### 📁 Estrutura mínima de uma função customizada no Nuclio para CVAT
-
-Seguiu (corretamente) a estrutura baseada no SAM 1:
-
-```
-sam2/
-  └── nuclio/
-      ├── function-gpu.yaml     # Define a imagem base, variáveis de ambiente, handler e limites
-      ├── main.py               # Handler da função (interface HTTP do Nuclio)
-      ├── model_handler.py      # Lógica da inferência real do modelo
-      └── requirements.txt      # Dependências
-```
-
----
-
-### 🔧 `function-gpu.yaml` - Configuração da função
-
-Você definiu:
-
-- **`baseImage`** com suporte à GPU e compatível com PyTorch 2.4 e CUDA 12.4
-- **`directives`** para instalar dependências como `segment-anything-2` e libs auxiliares
-- **`handler`** apontando para `main:handler`
-- **`resources.limits.nvidia.com/gpu: 1`** garantindo que a função vai rodar com GPU
-- **`env`** customizados para carregar diferentes modelos/configs do SAM 2
-
-Isso permite **trocar o modelo usado sem alterar código**:
-
-```yaml
-- kind: ENV
-  value: MODEL="sam2_hiera_large.pt"
-- kind: ENV
-  value: MODEL_CFG="sam2_hiera_l.yaml"
-```
-
----
-
-### 🧠 `main.py` e `model_handler.py`
-
-- O `main.py` expõe um `handler` HTTP que:
-  - Recebe `image` + `points` + `labels`
-  - Chama o `ModelHandler` com esses dados
-
-- O `model_handler.py` é responsável por:
-  - Carregar o modelo SAM 2 (com o checkpoint e config passados via ENV)
-  - Aplicar a inferência com base nos pontos recebidos
-  - Retornar a máscara em formato que o CVAT entende (array binário → PNG ou RLE → base64)
-
----
-
-## ✅ Como o CVAT reconhece a função no painel
-
-Assim que você executa:
-
-```bash
-./deploy_gpu.sh sam2/nuclio
-```
-
-A função `nuclio-sam2` (ou qualquer nome que você definir na `function-gpu.yaml`) é registrada no Nuclio e automaticamente lida pelo CVAT **via API interna**.
-
-O CVAT então **lista essa função** como um modelo disponível em:
-
-```
-Actions → Automatic Annotation
-```
+- [ ] Automatizar deploy com Makefile
+- [ ] Adicionar suporte ao modelo SAM-HQ
+- [ ] Exportação com post-processamento customizado
