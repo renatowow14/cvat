@@ -247,7 +247,7 @@ docker compose restart
 
 ### 📁 Estrutura mínima de uma função customizada no Nuclio para CVAT
 
-Você seguiu (corretamente) a estrutura baseada no SAM 1:
+Seguiu (corretamente) a estrutura baseada no SAM 1:
 
 ```
 sam2/
