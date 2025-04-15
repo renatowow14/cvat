@@ -1,4 +1,4 @@
-# CVAT - Anotação Automática com YOLOv3, DEXTR, SAM 1 e SAM 2 via Docker + Nuclio
+# 🫠 CVAT - Anotacao Automatica com YOLOv3, DEXTR, SAM 1 e SAM 2 via Docker + Nuclio
 
 Este repositório/documentação mostra como subir localmente o **CVAT** com suporte a **anotação automática e assistida**, utilizando modelos baseados em deep learning como **YOLOv3**, **DEXTR**, **SAM 1** e **SAM 2**, via **Nuclio**.
 
@@ -66,6 +66,46 @@ nuctl version
 ```
 
 > 💡 O comando `nuctl` precisa estar disponível no terminal antes de executar os scripts de deploy.
+
+---
+
+## 💻 Instalação de drivers NVIDIA + CUDA Toolkit (para SAM 1 e SAM 2)
+
+```bash
+# Instalar suporte a drivers automáticos e listar opções
+apt install ubuntu-drivers-common -y
+ubuntu-drivers devices
+
+# Instalar driver recomendado (ex: 550)
+sudo apt install nvidia-driver-550 -y
+
+# Instalar toolkit para containers NVIDIA
+distribution=$(. /etc/os-release; echo $ID$VERSION_ID)
+curl -s -L https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list \
+  | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#' \
+  | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list > /dev/null
+sudo apt update
+sudo apt install -y nvidia-container-toolkit
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+
+# (Opcional) Instalar GCC se não tiver
+sudo apt-get install gcc -y
+
+# Instalar CUDA Toolkit 12.8
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt-get update
+sudo apt-get -y install cuda-toolkit-12-8
+
+# Configurar variáveis de ambiente
+export PATH=/usr/local/cuda/bin${PATH:+:$PATH}
+export LD_LIBRARY_PATH=/usr/local/cuda-12.2/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+
+# Testar
+nvcc -V
+```
 
 ---
 
