@@ -212,16 +212,14 @@ docker compose restart
 ## 🧪 Como foi feita a personalização do SAM 2 no CVAT
 
 ### 📁 Estrutura da função customizada
-
 ```
 sam2/
   └── nuclio/
-      ├── function-gpu.yaml
-      ├── main.py
-      ├── model_handler.py
-      └── requirements.txt
+      ├── function-gpu.yaml       # Arquivo de configuração da função Nuclio
+      ├── main.py                 # Interface HTTP que chama a inferência
+      ├── model_handler.py        # Classe responsável pelo carregamento e execução do modelo
+      └── requirements.txt        # Dependências necessárias
 ```
-
 ### 🔧 `function-gpu.yaml`
 
 - Define `baseImage` com suporte à GPU (compatível com PyTorch 2.4 e CUDA 12.4)
