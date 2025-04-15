@@ -180,7 +180,7 @@ docker compose restart
 
 ## 📈 Detalhes da Integração do SAM 2 no CVAT
 
-### Walkthrough
+### Passo a passo
 
 A função personalizada para o SAM 2 foi integrada ao CVAT utilizando Nuclio com suporte à GPU. A função recebe uma imagem e pontos de segmentação, executa o modelo SAM 2, gera a máscara e retorna a resposta ao CVAT. Essa integração melhora a acessibilidade à segmentação avançada de imagens.
 
