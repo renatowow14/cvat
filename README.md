@@ -1,4 +1,4 @@
-# CVAT - Anotacao Automatica com YOLOv3, DEXTR, SAM 1 e SAM 2 via Docker + Nuclio
+# CVAT - Anotação Automática com YOLOv3, DEXTR, SAM 1 e SAM 2 via Docker + Nuclio
 
 Este repositório/documentação mostra como subir localmente o **CVAT** com suporte a **anotação automática e assistida**, utilizando modelos baseados em deep learning como **YOLOv3**, **DEXTR**, **SAM 1** e **SAM 2**, via **Nuclio**.
 
