@@ -33,6 +33,49 @@ docker compose -f docker-compose.yml -f components/serverless/docker-compose.ser
 
 ---
 
+## 🌐 Expondo o CVAT para a rede local (WAN)
+
+Por padrão, o CVAT escuta apenas no `localhost`. Para permitir acesso de outros dispositivos da rede (como `http://192.168.1.15:8080`):
+
+1. No `docker-compose.yml`, altere os blocos de labels:
+
+### `cvat_server`:
+```yaml
+labels:
+  traefik.enable: "true"
+  traefik.http.services.cvat.loadbalancer.server.port: "8080"
+  traefik.http.routers.cvat.rule: PathPrefix(`/api/`) || PathPrefix(`/static/`) || PathPrefix(`/admin`) || PathPrefix(`/django-rq`)
+  traefik.http.routers.cvat.entrypoints: web
+```
+
+### `cvat_ui`:
+```yaml
+labels:
+  traefik.enable: "true"
+  traefik.http.services.cvat-ui.loadbalancer.server.port: "80"
+  traefik.http.routers.cvat-ui.rule: PathPrefix(`/`)
+  traefik.http.routers.cvat-ui.entrypoints: web
+```
+
+2. Certifique-se que o serviço `traefik` está expondo as portas:
+```yaml
+ports:
+  - 8080:8080
+```
+
+3. Reinicie os serviços:
+```bash
+docker compose down -v
+docker compose -f docker-compose.yml -f components/serverless/docker-compose.serverless.yml up -d --build
+```
+
+Agora, acesse via IP da máquina:
+```
+http://192.168.1.15:8080
+```
+
+---
+
 ## 🔑 Criando usuário administrador
 
 ```bash
