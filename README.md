@@ -178,6 +178,43 @@ docker compose restart
 
 ---
 
+## 📈 Detalhes da Integração do SAM 2 no CVAT
+
+### Walkthrough
+
+A função personalizada para o SAM 2 foi integrada ao CVAT utilizando Nuclio com suporte à GPU. A função recebe uma imagem e pontos de segmentação, executa o modelo SAM 2, gera a máscara e retorna a resposta ao CVAT. Essa integração melhora a acessibilidade à segmentação avançada de imagens.
+
+### Changes
+
+| Arquivos/Funções                                             | Descrição                                                                                         |
+|--------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| `function-gpu.yaml`                                          | Define imagem base, runtime, variáveis, handler, trigger HTTP e uso de GPU                       |
+| `main.py`                                                    | Implementa a função Nuclio com `init_context` e `handler` para processar imagem e retornar máscara |
+| `model_handler.py`                                           | Classe `ModelHandler` para carregar modelo e gerar máscara com base nos pontos recebidos         |
+| `requirements.txt`                                           | Lista bibliotecas adicionais necessárias para a função funcionar corretamente                     |
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant HTTPTrigger
+    participant MainHandler
+    participant ModelHandler
+
+    User->>HTTPTrigger: Send image and points
+    HTTPTrigger->>MainHandler: Forward request
+    MainHandler->>MainHandler: Initialize context
+    MainHandler->>ModelHandler: Process image with points
+    ModelHandler->>ModelHandler: Generate mask
+    ModelHandler-->>MainHandler: Return mask
+    MainHandler-->>HTTPTrigger: Send response with mask
+    HTTPTrigger-->>User: Display result
+```
+
+---
+---
+
 ## 🧑‍💻 Usando a anotação automática na interface
 
 1. Criar uma `Task`
