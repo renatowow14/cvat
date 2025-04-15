@@ -87,7 +87,7 @@ docker exec -it cvat_server bash -ic 'python3 manage.py createsuperuser'
 ## 🔎 Acessando o CVAT
 
 ```
-http://localhost:8080
+http://192.168.1.15:8080
 ```
 
 ---
