@@ -1,6 +1,6 @@
-# 🫠 CVAT - Anotacao Automatica com YOLOv3 e DEXTR via Docker + Nuclio
+# 🫠 CVAT - Anotacao Automatica com YOLOv3, DEXTR, SAM 1 e SAM 2 via Docker + Nuclio
 
-Este repositório/documentação mostra como subir localmente o CVAT com suporte a anotação automática usando modelos baseados em deep learning como YOLOv3 e DEXTR, via Nuclio.
+Este repositório/documentação mostra como subir localmente o **CVAT** com suporte a **anotação automática e assistida**, utilizando modelos baseados em deep learning como **YOLOv3**, **DEXTR**, **SAM 1** e **SAM 2**, via **Nuclio**.
 
 ---
 
@@ -8,6 +8,7 @@ Este repositório/documentação mostra como subir localmente o CVAT com suporte
 
 - Docker + Docker Compose instalados
 - Sistema operacional compatível (Ubuntu 20.04+, WSL2 ou Mac)
+- GPU + NVIDIA Container Toolkit (para SAM 1 e SAM 2)
 
 ---
 
@@ -22,19 +23,17 @@ cd cvat
 
 ## ⚙️ Subindo o CVAT com suporte a modelos serverless
 
-Use o `docker-compose.serverless.yml` para ativar os modelos automáticos (YOLO, DEXTR, etc):
+Use o `docker-compose.serverless.yml` para ativar os modelos automáticos (YOLO, DEXTR, SAM, etc):
 
 ```bash
-docker compose -f docker-compose.yml -f components/serverless/docker-compose.serverless.yml up -d
+docker compose -f docker-compose.yml -f components/serverless/docker-compose.serverless.yml up -d --build
 ```
 
 > ⚠️ Aguarde o download e inicialização de todos os containers (leva alguns minutos na primeira vez).
 
 ---
 
-## 🔮 Criando usuário administrador
-
-Acesse o container do backend e crie o superusuário:
+## 🔑 Criando usuário administrador
 
 ```bash
 docker exec -it cvat_server bash -ic 'python3 manage.py createsuperuser'
@@ -44,123 +43,125 @@ docker exec -it cvat_server bash -ic 'python3 manage.py createsuperuser'
 
 ## 🔎 Acessando o CVAT
 
-Abra o navegador e acesse:
 ```
 http://localhost:8080
 ```
 
-Login com o usuário que você criou no passo anterior.
+---
+
+## 📥 Instalação do Nuclio CLI (`nuctl`)
+
+```bash
+# Baixar a versão mais recente do nuctl
+curl -Lo nuctl https://github.com/nuclio/nuclio/releases/download/1.13.23/nuctl-1.13.23-linux-amd64
+
+# Tornar executável
+chmod +x nuctl
+
+# Mover para um diretório do PATH
+sudo mv nuctl /usr/local/bin/
+
+# Verificar a instalação
+nuctl version
+```
+
+> 💡 O comando `nuctl` precisa estar disponível no terminal antes de executar os scripts de deploy.
 
 ---
 
-## 🤖 Deploy dos modelos YOLOv3 e DEXTR
-
-Os modelos são implantados como funções Nuclio. Execute os comandos:
+## 🤖 Deploy dos modelos YOLOv3 e DEXTR (CPU)
 
 ```bash
 ./serverless/deploy_cpu.sh serverless/openvino/dextr
 ./serverless/deploy_cpu.sh serverless/openvino/omz/public/yolo-v3-tf
 ```
 
-> Isso irá registrar os modelos no painel Nuclio (`http://localhost:8070`) e deixá-los prontos para uso no CVAT.
+> Isso registrará os modelos no painel Nuclio (`http://localhost:8070`) e permitirá seu uso no CVAT.
 
 ---
 
-## 🔌 Testando via terminal (opcional)
+## 🧠 Deploy do SAM 1 (GPU)
 
 ```bash
-# Baixar imagem de teste
-curl -O https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png
-mv Lenna_\(test_image\).png lenna.png
+./serverless/deploy_gpu.sh serverless/pytorch/facebookresearch/sam
+```
 
-# Codificar em base64
-curl -s https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png | base64 | tr -d '\n' > image.txt
-
-# Testar YOLOv3
-echo "{\"image\": \"$(cat image.txt)\"}" | nuctl invoke openvino-omz-public-yolo-v3-tf -c application/json --platform local
+> Reinicie os containers CVAT após o deploy:
+```bash
+docker compose restart
 ```
 
 ---
 
-## 🧑‍💻 Usando a anotação automática via interface
+## 🧪 Deploy do SAM 2 (custom, GPU)
+
+1. Clone ou copie os arquivos `function-gpu.yaml`, `main.py`, `model_handler.py` e `requirements.txt` para uma pasta:
+
+```
+sam2/
+  └── nuclio/
+      ├── function-gpu.yaml
+      ├── main.py
+      ├── model_handler.py
+      └── requirements.txt
+```
+
+2. Execute:
+```bash
+./deploy_gpu.sh sam2/nuclio
+```
+
+3. Reinicie o CVAT:
+```bash
+docker compose restart
+```
+
+> O modelo `nuclio-sam2` aparecerá no menu **Actions > Automatic Annotation**.
+
+---
+
+## 🧑‍💻 Usando a anotação automática na interface
 
 1. No CVAT, crie uma `Task`
-2. Faça upload da imagem `lenna.png`
-3. Crie um label chamado `person`
+2. Faça upload de imagens (ex: `lenna.png`)
+3. Crie um label (ex: `person`)
 4. Acesse o Job da imagem
 5. Clique em `Actions → Automatic Annotation`
-6. Escolha `YOLOv3` e mapeie `person → person`
-7. Clique em **Annotate** e depois em **Save**
+6. Escolha o modelo (YOLOv3, DEXTR, SAM 1, SAM 2)
+7. Mapeie os labels e clique em **Annotate**
+8. Clique em **Save**
 
 ---
 
-## 📄 Exportando as anotações
-
-Você pode exportar no formato desejado:
+## 📄 Exportando anotações
 
 - `Actions → Export annotations`
-- Formatos: XML, COCO, YOLO, Pascal VOC, etc.
+- Formatos suportados: COCO, YOLO, Pascal VOC, XML, etc.
 
 ---
 
-## 📦 Componentes do CVAT com suporte a anotação automática
+## 📊 Comparativo de Modelos
 
-**Serviços principais:**
-- `cvat_ui`: Interface web do CVAT (`localhost:8080`)
-- `cvat_server`: Backend Django principal
-- `cvat_utils`: Utilitários do backend
-
-**Workers:**
-- `cvat_worker_import`: Importação de dados
-- `cvat_worker_export`: Exportação de anotações
-- `cvat_worker_annotation`: Processamento de tarefas de anotação
-- `cvat_worker_chunks`, `cvat_worker_consensus`, etc.
-
-**Banco de dados e cache:**
-- `cvat_db`: PostgreSQL — armazena tarefas, usuários, anotações
-- `cvat_redis_inmem`: Redis in-memory
-- `cvat_redis_ondisk`: Redis persistente com Kvrocks
-- `cvat_clickhouse`: Banco analítico para métricas
-
-**Monitoramento e segurança:**
-- `cvat_vector`: Coletor de logs com Vector
-- `cvat_grafana`: Dashboard com métricas via Grafana
-- `cvat_opa`: Open Policy Agent — controle de permissões
-
-**Infraestrutura web:**
-- `traefik`: Proxy reverso HTTP/HTTPS para rotear tráfego
-- `nuclio`: Painel web Nuclio (`localhost:8070`)
-- `nuclio-local-storage-reader`: Leitor de arquivos usado por funções Nuclio
-
----
-
-## 🤖 Modelos de Anotação (Funções Serverless)
-
-- `nuclio-nuclio-openvino-omz-public-yolo-v3-tf`: Modelo YOLOv3-TF
-  - 📌 Detecta objetos em tempo real (ex: `person`, `car`, etc.)
-- `nuclio-nuclio-openvino-dextr`: Modelo DEXTR
-  - 📌 Segmenta objetos com base em 4 pontos extremos (requere intervenção do usuário)
-
----
-
-## 🧠 Observações:
-
-- Cada modelo é executado de forma independente e acessado sob demanda pelo CVAT GUI.
-- O CVAT é modular: pode ser expandido com novos modelos, plugins, cloud storage, etc.
+| Modelo  | Tipo       | Suporte     | Framework       | Recurso | Labels | Tipos de tarefa |
+|---------|------------|-------------|------------------|---------|--------|-----------------|
+| YOLOv3  | Detecção   | Oficial     | OpenVINO         | CPU     | person, car... | Caixa delimitadora |
+| DEXTR   | Segmentação| Oficial     | OpenVINO         | CPU     | custom          | Segmentação interativa |
+| SAM 1   | Segmentação| Oficial     | PyTorch + CUDA    | GPU     | custom          | Segmentação assistida |
+| SAM 2   | Segmentação| Custom      | PyTorch 2.4 + CUDA 12.4 | GPU | custom          | Segmentação assistida |
 
 ---
 
 ## 📚 Referências
 
-- [Documentação Oficial CVAT](https://docs.cvat.ai/)
-- [Segment Anything (SAM2)](https://github.com/facebookresearch/segment-anything)
+- [CVAT Docs](https://docs.cvat.ai/)
+- [Nuclio Docs](https://nuclio.io/docs/latest/)
+- [Segment Anything v1](https://github.com/facebookresearch/segment-anything)
+- [Segment Anything v2](https://github.com/facebookresearch/segment-anything-2)
 
 ---
 
-## 📌 TODO
+## ✅ TODO
 
-- [ ] Adicionar modelo SAM2 customizado
-- [ ] Exportar anotação em COCO
-- [ ] Automatizar deploy com Makefile ou script `.sh`
-
----
+- [ ] Automatizar deploy com Makefile
+- [ ] Adicionar suporte ao modelo SAM-HQ
+- [ ] Exportação com post-processamento customizado
