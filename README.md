@@ -243,8 +243,69 @@ docker compose restart
 
 ---
 
-## ✅ TODO
+## 🧪 Como foi feita a personalização do SAM 2 no CVAT
 
-- [ ] Automatizar deploy com Makefile
-- [ ] Adicionar suporte ao modelo SAM-HQ
-- [ ] Exportação com post-processamento customizado
+### 📁 Estrutura mínima de uma função customizada no Nuclio para CVAT
+
+Você seguiu (corretamente) a estrutura baseada no SAM 1:
+
+```
+sam2/
+  └── nuclio/
+      ├── function-gpu.yaml     # Define a imagem base, variáveis de ambiente, handler e limites
+      ├── main.py               # Handler da função (interface HTTP do Nuclio)
+      ├── model_handler.py      # Lógica da inferência real do modelo
+      └── requirements.txt      # Dependências
+```
+
+---
+
+### 🔧 `function-gpu.yaml` - Configuração da função
+
+Você definiu:
+
+- **`baseImage`** com suporte à GPU e compatível com PyTorch 2.4 e CUDA 12.4
+- **`directives`** para instalar dependências como `segment-anything-2` e libs auxiliares
+- **`handler`** apontando para `main:handler`
+- **`resources.limits.nvidia.com/gpu: 1`** garantindo que a função vai rodar com GPU
+- **`env`** customizados para carregar diferentes modelos/configs do SAM 2
+
+Isso permite **trocar o modelo usado sem alterar código**:
+
+```yaml
+- kind: ENV
+  value: MODEL="sam2_hiera_large.pt"
+- kind: ENV
+  value: MODEL_CFG="sam2_hiera_l.yaml"
+```
+
+---
+
+### 🧠 `main.py` e `model_handler.py`
+
+- O `main.py` expõe um `handler` HTTP que:
+  - Recebe `image` + `points` + `labels`
+  - Chama o `ModelHandler` com esses dados
+
+- O `model_handler.py` é responsável por:
+  - Carregar o modelo SAM 2 (com o checkpoint e config passados via ENV)
+  - Aplicar a inferência com base nos pontos recebidos
+  - Retornar a máscara em formato que o CVAT entende (array binário → PNG ou RLE → base64)
+
+---
+
+## ✅ Como o CVAT reconhece a função no painel
+
+Assim que você executa:
+
+```bash
+./deploy_gpu.sh sam2/nuclio
+```
+
+A função `nuclio-sam2` (ou qualquer nome que você definir na `function-gpu.yaml`) é registrada no Nuclio e automaticamente lida pelo CVAT **via API interna**.
+
+O CVAT então **lista essa função** como um modelo disponível em:
+
+```
+Actions → Automatic Annotation
+```
