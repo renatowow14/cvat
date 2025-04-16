@@ -185,12 +185,13 @@ A função personalizada para o SAM 2 foi integrada ao CVAT utilizando Nuclio co
 
 ### Mudanças
 
-| Arquivos/Funções                                             | Descrição                                                                                         |
-|--------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
-| `function-gpu.yaml`                                          | Define imagem base, runtime, variáveis, handler, trigger HTTP e uso de GPU                       |
-| `main.py`                                                    | Implementa a função Nuclio com `init_context` e `handler` para processar imagem e retornar máscara |
-| `model_handler.py`                                           | Classe `ModelHandler` para carregar modelo e gerar máscara com base nos pontos recebidos         |
-| `requirements.txt`                                           | Lista bibliotecas adicionais necessárias para a função funcionar corretamente                     |
+| Arquivo/Função                  | Descrição                                                                                         |
+|--------------------------------|---------------------------------------------------------------------------------------------------|
+| `function-gpu.yaml`            | Define a configuração da função Nuclio: imagem base, runtime, handler, uso de GPU e variáveis ENV |
+| `main.py`                      | Recebe imagem e pontos via HTTP e coordena a chamada ao `ModelHandler`                            |
+| `model_handler.py`             | Contém a lógica de inferência, carregamento do modelo e suporte a Bounding Box                    |
+| `deploy_gpu.sh`                | Script automatizado que percorre os diretórios com `function-gpu.yaml` e executa o `nuctl deploy` |
+
 
 ### ⚙️ Diferenciais desta implementação (SAM 2)
 
@@ -269,10 +270,6 @@ sequenceDiagram
 | DEXTR   | Segmentação| Oficial     | OpenVINO         | CPU     | custom          | Segmentação interativa |
 | SAM 1   | Segmentação| Oficial     | PyTorch + CUDA    | GPU     | custom          | Segmentação assistida |
 | SAM 2   | Segmentação| Custom      | PyTorch 2.4 + CUDA 12.4 | GPU | custom          | Segmentação assistida |
-
----
-
-Perfeito, vamos complementar a seção `## 🧪 Como foi feita a personalização do SAM 2 no CVAT` com base na **análise detalhada do segundo repositório** que você usou. Aqui está a nova versão, completa e clara:
 
 ---
 
