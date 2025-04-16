@@ -157,16 +157,32 @@ docker compose restart
 
 ## 🧪 Deploy do SAM 2 (custom, GPU)
 
-1. Clonar ou copiar os arquivos `function-gpu.yaml`, `main.py`, `model_handler.py` para uma pasta:
+1. Clonar ou copiar os arquivos `function-gpu.yaml`, `main.py`, `model_handler.py` para uma pasta, e o script `deploy_gpu.sh` para o diretório raiz:
 
 ```
+deploy_gpu.sh                # Script que faz o deploy da função via nuctl
 sam2/
   └── nuclio/
-      ├── function-gpu.yaml
-      ├── main.py
-      ├── model_handler.py
+      ├── function-gpu.yaml  # Configuração da função Nuclio (GPU, ENV, modelo)
+      ├── main.py            # Função HTTP que trata a requisição do CVAT
+      ├── model_handler.py   # Classe que roda a inferência do SAM2
+      └── requirements.txt   # Dependências da função
 ```
 
+---
+
+2. Executar o script:
+
+```bash
+./deploy_gpu.sh sam2/nuclio
+docker compose restart
+```
+
+> ✅ O modelo `nuclio-sam2` aparecerá no menu **Actions > Automatic Annotation** do CVAT automaticamente após o deploy.
+
+---
+
+Se quiser, posso também te devolver todo o `README.md` atualizado já com esse trecho incluído no lugar. Deseja?
 2. Executar:
 ```bash
 ./deploy_gpu.sh sam2/nuclio
@@ -279,12 +295,13 @@ sequenceDiagram
 
 ### 📁 Estrutura da função customizada
 ```
+deploy_gpu.sh                # Script que faz o deploy da função via nuctl
 sam2/
   └── nuclio/
-      ├── function-gpu.yaml       # Configuração da função Nuclio com GPU
-      ├── main.py                 # Função HTTP Nuclio que executa a inferência
-      ├── model_handler.py        # Classe que carrega o modelo e executa a predição
-      └── requirements.txt        # Dependências da função (Torch, SAM2, etc)
+      ├── function-gpu.yaml  # Configuração da função Nuclio (GPU, ENV, modelo)
+      ├── main.py            # Função HTTP que trata a requisição do CVAT
+      ├── model_handler.py   # Classe que roda a inferência do SAM2
+      └── requirements.txt   # Dependências da função
 ```
 
 ---
