@@ -357,9 +357,3 @@ Isso permite alternar entre diferentes variantes do SAM2 (tiny, small, base_plus
 - [Segment Anything v2](https://github.com/facebookresearch/segment-anything-2)
 
 ---
-
-## ✅ TODO
-
-- [ ] Automatizar deploy com Makefile
-- [ ] Adicionar suporte ao modelo SAM-HQ
-- [ ] Exportação com post-processamento customizado
