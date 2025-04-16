@@ -450,10 +450,6 @@ Isso permite alternar entre diferentes variantes do SAM2 (tiny, small, base_plus
 
 ---
 
-Perfeito! Aqui está uma lista detalhada de **tudo que foi feito até agora** no projeto CVAT com suporte à anotação automática e SAM 2 adaptado:
-
----
-
 ## ✅ **Checklist Geral do Projeto**
 
 ### 🔧 Instalação e Configuração Base
