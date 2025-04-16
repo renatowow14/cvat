@@ -449,3 +449,56 @@ Isso permite alternar entre diferentes variantes do SAM2 (tiny, small, base_plus
 - [Segment Anything v2](https://github.com/facebookresearch/segment-anything-2)
 
 ---
+
+Perfeito! Aqui está uma lista detalhada de **tudo que foi feito até agora** no projeto CVAT com suporte à anotação automática e SAM 2 adaptado:
+
+---
+
+## ✅ **Checklist Geral do Projeto**
+
+### 🔧 Instalação e Configuração Base
+- [x] Clonagem do repositório oficial do [CVAT](https://github.com/opencv/cvat)
+- [x] Uso do `docker-compose.yml` e `docker-compose.serverless.yml` para subir o CVAT com suporte a modelos serverless
+- [x] Configuração do Traefik para acesso via rede local (IP da máquina host)
+- [x] Criação de superusuário Django via container `cvat_server`
+- [x] Instalação do CLI `nuctl` para deploy de funções Nuclio
+- [x] Instalação dos drivers NVIDIA, CUDA Toolkit e NVIDIA Container Toolkit (essencial para SAM 1 e SAM 2)
+
+---
+
+### 🧠 Deploy dos Modelos Padrão
+- [x] Deploy do **YOLOv3** com `deploy_cpu.sh`
+- [x] Deploy do **DEXTR** com `deploy_cpu.sh`
+- [x] Deploy do **SAM 1** com `deploy_gpu.sh` oficial
+
+---
+
+### 🚀 Integração e Deploy do SAM 2 (Custom Adaptado)
+- [x] Análise de dois repositórios diferentes de SAM2
+- [x] Escolha e uso do repositório **com suporte a Bounding Box to Mask** e uso de `ENV`
+- [x] Inclusão dos arquivos:
+  - `function-gpu.yaml`
+  - `main.py`
+  - `model_handler.py`
+  - `requirements.txt`
+  - `deploy_gpu.sh`
+- [x] Configuração de variáveis `ENV` no `function-gpu.yaml` (`MODEL`, `MODEL_CFG`)
+- [x] Suporte a CUDA 12.4 via imagem base `pytorch/pytorch:2.4.0-cuda12.4-cudnn9-devel`
+- [x] Adição de suporte a **Bounding Box to Mask**
+- [x] Testes de deploy via `nuctl` e reinício do CVAT para reconhecimento automático da função
+
+---
+
+### 📂 Volume Compartilhado (Shared Storage)
+- [x] Criação do volume `cvat_share` com bind para `/mnt/share`
+- [x] Criação do arquivo `docker-compose.custom.override.yml`
+- [x] Montagem do volume nos containers:
+  - `cvat_server`
+  - `cvat_worker_import`
+  - `cvat_worker_export`
+  - `cvat_worker_annotation`
+  - `cvat_worker_chunks`
+- [x] Teste de leitura/escrita com `echo` e `cat` dentro do container
+- [x] Permissões aplicadas: `chmod 777 /mnt/share`
+
+---
