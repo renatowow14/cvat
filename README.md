@@ -76,6 +76,81 @@ http://192.168.1.15:8080
 
 ---
 
+## 📂 Configuração de volume compartilhado (`/mnt/share`)
+
+***Referência: [*Share Storage*](https://docs.cvat.ai/docs/administration/basics/installation/#share-path)***
+
+Para facilitar a **importação/exportação de dados** e permitir acesso a arquivos em múltiplos workers, configuramos um volume compartilhado entre os serviços do CVAT.
+
+### 🛠️ Etapas de configuração
+
+1. Criar o diretório compartilhado no host:
+```bash
+mkdir -p /mnt/share
+chmod 777 /mnt/share
+```
+
+2. Criar um arquivo `docker-compose.custom.override.yml` com o conteúdo:
+
+```yaml
+services:
+  cvat_server:
+    volumes:
+      - cvat_share:/home/django/share:ro
+
+  cvat_worker_import:
+    volumes:
+      - cvat_share:/home/django/share:ro
+
+  cvat_worker_export:
+    volumes:
+      - cvat_share:/home/django/share:ro
+
+  cvat_worker_annotation:
+    volumes:
+      - cvat_share:/home/django/share:ro
+
+  cvat_worker_chunks:
+    volumes:
+      - cvat_share:/home/django/share:ro
+
+volumes:
+  cvat_share:
+    driver_opts:
+      type: none
+      device: /mnt/share
+      o: bind
+```
+
+> 🔒 O uso de `:ro` (read-only) garante que os containers não modifiquem os arquivos do host acidentalmente.
+
+3. Subir o CVAT com o override ativado:
+
+```bash
+docker compose \
+  -f docker-compose.yml \
+  -f docker-compose.custom.override.yml \
+  -f components/serverless/docker-compose.serverless.yml \
+  up -d --build
+```
+
+4. Verificar se o volume está montado corretamente:
+
+```bash
+docker exec -it cvat_server ls /home/django/share
+```
+
+5. Teste funcional:
+
+```bash
+echo "🔥 Teste de volume OK" > /mnt/share/teste.txt
+docker exec -it cvat_server cat /home/django/share/teste.txt
+```
+
+> ✅ Você deverá ver a mensagem "🔥 Teste de volume OK", provando que o CVAT está lendo corretamente o conteúdo do volume compartilhado.
+
+---
+
 ## 🔑 Criando usuário administrador
 
 ```bash
