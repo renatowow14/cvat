@@ -157,7 +157,7 @@ docker compose restart
 
 ## 🧪 Deploy do SAM 2 (custom, GPU)
 
-1. Clonar ou copiar os arquivos `function-gpu.yaml`, `main.py`, `model_handler.py` e `requirements.txt` para uma pasta:
+1. Clonar ou copiar os arquivos `function-gpu.yaml`, `main.py`, `model_handler.py` para uma pasta:
 
 ```
 sam2/
@@ -165,7 +165,6 @@ sam2/
       ├── function-gpu.yaml
       ├── main.py
       ├── model_handler.py
-      └── requirements.txt
 ```
 
 2. Executar:
@@ -192,6 +191,33 @@ A função personalizada para o SAM 2 foi integrada ao CVAT utilizando Nuclio co
 | `main.py`                                                    | Implementa a função Nuclio com `init_context` e `handler` para processar imagem e retornar máscara |
 | `model_handler.py`                                           | Classe `ModelHandler` para carregar modelo e gerar máscara com base nos pontos recebidos         |
 | `requirements.txt`                                           | Lista bibliotecas adicionais necessárias para a função funcionar corretamente                     |
+
+### ⚙️ Diferenciais desta implementação (SAM 2)
+
+| Recurso                          | Descrição                                                                 |
+|----------------------------------|---------------------------------------------------------------------------|
+| ✅ ENV configuráveis             | Permite trocar facilmente o modelo e config (`MODEL`, `MODEL_CFG`)       |
+| ✅ Bounding Box to Mask          | Suporte a caixas iniciais para gerar segmentações mais precisas          |
+| ✅ Compatível com CVAT + Nuclio  | Deploy simples via `deploy_gpu.sh` com `function-gpu.yaml` específico    |
+| 🧠 Baseada em SAM1               | Estrutura de função herdada do `serverless/pytorch/facebookresearch/sam` |
+
+---
+
+### ✨ Comparativo com o SAM 1
+
+| Item                         | SAM 1                                      | SAM 2 (custom adaptado)                      |
+|------------------------------|---------------------------------------------|----------------------------------------------|
+| Modelo base                  | SAM (v1)                                    | Segment Anything 2 (v2)                      |
+| Bounding Box suporte         | ❌ Somente pontos                           | ✅ Bounding Box + pontos                     |
+| Variáveis de ambiente        | ❌ Fixas                                    | ✅ `MODEL` e `MODEL_CFG`                     |
+| Arquitetura Nuclio           | ✅ Pronta                                   | ✅ Adaptada a partir do SAM1                 |
+| Imagem base CUDA             | `cuda11`                                    | `cuda12.4`, compatível com PyTorch 2.4       |
+
+---
+
+### 🤝 Agradecimentos
+
+A adaptação do SAM2 foi baseada em contribuições da comunidade, especialmente nos pull requests da [issue #8243](https://github.com/opencv/cvat/pull/8243), liderada por @jeanchristopheruel, que tornou possível integrar o Segment Anything 2 ao ecossistema CVAT Open Source.
 
 ### Diagrama de Sequência
 
@@ -246,24 +272,32 @@ sequenceDiagram
 
 ---
 
+Perfeito, vamos complementar a seção `## 🧪 Como foi feita a personalização do SAM 2 no CVAT` com base na **análise detalhada do segundo repositório** que você usou. Aqui está a nova versão, completa e clara:
+
+---
+
 ## 🧪 Como foi feita a personalização do SAM 2 no CVAT
+
+---
 
 ### 📁 Estrutura da função customizada
 ```
 sam2/
   └── nuclio/
-      ├── function-gpu.yaml       # Arquivo de configuração da função Nuclio
-      ├── main.py                 # Interface HTTP que chama a inferência
-      ├── model_handler.py        # Classe responsável pelo carregamento e execução do modelo
-      └── requirements.txt        # Dependências necessárias
+      ├── function-gpu.yaml       # Configuração da função Nuclio com GPU
+      ├── main.py                 # Função HTTP Nuclio que executa a inferência
+      ├── model_handler.py        # Classe que carrega o modelo e executa a predição
+      └── requirements.txt        # Dependências da função (Torch, SAM2, etc)
 ```
+
+---
+
 ### 🔧 `function-gpu.yaml`
 
-- Define `baseImage` com suporte à GPU (compatível com PyTorch 2.4 e CUDA 12.4)
-- Instala dependências via `directives`
-- Aponta `handler: main:handler`
-- Define uso de GPU via `resources.limits.nvidia.com/gpu: 1`
-- Utiliza variáveis de ambiente para configurar dinamicamente o modelo:
+- Define `baseImage: pytorch/pytorch:2.4.0-cuda12.4-cudnn9-devel`, conforme recomendado pela Meta para suporte ao SAM2
+- Adiciona instruções `directives` para instalar pacotes via `apt`, baixar o modelo SAM2 e instalar bibliotecas com `pip`
+- Usa `resources.limits.nvidia.com/gpu: 1` para garantir que a função utilize a GPU
+- Usa variáveis de ambiente para parametrizar o modelo carregado:
 
 ```yaml
 - kind: ENV
@@ -272,10 +306,49 @@ sam2/
   value: MODEL_CFG="sam2_hiera_l.yaml"
 ```
 
-### 🧠 `main.py` e `model_handler.py`
+Isso permite alternar entre diferentes variantes do SAM2 (tiny, small, base_plus, large) sem editar o código.
 
-- `main.py` expõe uma função HTTP que recebe imagem, pontos e rótulos, delegando à inferência
-- `model_handler.py` executa o carregamento do SAM 2 e gera a máscara, retornando-a em formato compatível com o CVAT
+---
+
+### 🧠 `main.py`
+
+- Implementa o `handler()` que:
+  - Recebe a imagem base64 + pontos positivos e negativos
+  - Converte a imagem para RGB
+  - (Opcionalmente) processa `obj_bbox` se fornecido
+  - Chama `ModelHandler.handle()` e retorna a máscara gerada como resposta JSON
+- Inclui tratamento de erro com `try/except`, garantindo respostas HTTP 500 bem formatadas em caso de falha
+
+---
+
+### 🧠 `model_handler.py`
+
+- Usa `torch.cuda.is_available()` para detectar e utilizar GPU
+- Carrega dinamicamente o modelo e a configuração definidos nas variáveis de ambiente
+- Implementa:
+  ```python
+  def handle(image, pos_points, neg_points, obj_bbox=None)
+  ```
+  que realiza a inferência usando:
+  ```python
+  self.predictor.predict(...)
+  ```
+- Ordena as máscaras por `score`, retornando a melhor
+
+- Se `obj_bbox` for fornecida, ela é utilizada como pista para refinar a segmentação, permitindo a funcionalidade de **Bounding Box to Mask**
+
+---
+
+### 💡 Destaques técnicos da adaptação
+
+| Recurso                           | Implementado? | Detalhes                                                                 |
+|----------------------------------|---------------|--------------------------------------------------------------------------|
+| Suporte à GPU (CUDA 12.4)        | ✅            | Imagem `pytorch:2.4.0-cuda12.4-cudnn9-devel`                             |
+| Deploy automático via script     | ✅            | Com `deploy_gpu.sh` e `nuctl`                                            |
+| ENV para modelo/config           | ✅            | Com `MODEL` e `MODEL_CFG`                                               |
+| Suporte a Bounding Box to Mask   | ✅            | Parametrizado via `obj_bbox` em `main.py` e `model_handler.py`          |
+| Base SAM1 reaproveitada          | ✅            | Estrutura da função e lógica mantidas e adaptadas                       |
+| Escalável e reutilizável         | ✅            | Pronto para automações futuras                                          |
 
 ---
 
