@@ -364,7 +364,7 @@ sequenceDiagram
 
 ---
 
-## 🧪 Como foi feita a personalização do SAM 2 no CVAT
+## 🧪 Como foi feita a personalização do SAM 2 no CVAT ?
 
 ---
 
