@@ -1,0 +1,72 @@
+metadata:
+  name: sam2-tce
+  namespace: cvat
+  annotations:
+    name: Segment Anything 2
+    version: 2
+    type: interactor
+    spec:
+    min_pos_points: 1
+    min_neg_points: 0
+    startswith_box_optional: true
+    animated_gif: https://raw.githubusercontent.com/cvat-ai/cvat/develop/site/content/en/images/hrnet_example.gif
+    help_message: The interactor allows to get a mask of an object using at least one positive, and any negative points inside it
+
+spec:
+  description: Interactive object segmentation with Segment-Anything
+  runtime: 'python:3.8'
+  handler: main:handler
+  eventTimeout: 30s
+
+  build:
+    # the image tag is the commit hash from the SAM2 repo atm
+    image: cvat.sam2.tce:7e1596c
+    baseImage: pytorch/pytorch:2.4.0-cuda12.4-cudnn9-devel
+    directives:
+      preCopy:
+      # set NVIDIA container runtime settings
+        - kind: ENV
+          value: NVIDIA_VISIBLE_DEVICES=all
+        - kind: ENV
+          value: NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      # disable interactive frontend
+        - kind: ENV
+          value: DEBIAN_FRONTEND=noninteractive
+      # set CUDA arch list according to https://github.com/facebookresearch/segment-anything-2/blob/main/INSTALL.md
+        - kind: ENV
+          value: TORCH_CUDA_ARCH_LIST="9.0 8.0 8.6 8.9 7.0 7.2 7.5 6.0"
+        - kind: ENV
+          value: MODEL="sam2_hiera_large.pt"
+        - kind: ENV
+          value: MODEL_CFG="sam2_hiera_l.yaml"
+      # set workdir
+        - kind: WORKDIR
+          value: /opt/nuclio/sam2
+      # install basic deps
+        - kind: RUN
+          value: apt-get update && apt-get -y install curl git ffmpeg libsm6 libxext6 build-essential
+      # install SAM2 directly from the git repo
+        - kind: RUN
+          value: pip install git+https://github.com/facebookresearch/segment-anything-2.git@main
+      # Get SAM2 large model weights
+        - kind: RUN
+          value: curl -O https://dl.fbaipublicfiles.com/segment_anything_2/072824/${MODEL}
+
+
+  triggers:
+    myHttpTrigger:
+      maxWorkers: 1
+      kind: 'http'
+      workerAvailabilityTimeoutMilliseconds: 10000
+      attributes:
+        maxRequestBodySize: 33554432 # 32MB
+  resources:
+    limits:
+      nvidia.com/gpu: 1
+
+  platform:
+    attributes:
+      restartPolicy:
+        name: always
+        maximumRetryCount: 3
+      mountMode: volume
