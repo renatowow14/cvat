@@ -476,7 +476,6 @@ Isso permite alternar entre diferentes variantes do SAM2 (tiny, small, base_plus
   - `function-gpu.yaml`
   - `main.py`
   - `model_handler.py`
-  - `requirements.txt`
   - `deploy_gpu.sh`
 - [x] Configuração de variáveis `ENV` no `function-gpu.yaml` (`MODEL`, `MODEL_CFG`)
 - [x] Suporte a CUDA 12.4 via imagem base `pytorch/pytorch:2.4.0-cuda12.4-cudnn9-devel`
