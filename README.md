@@ -240,8 +240,7 @@ sam2/
   └── nuclio/
       ├── function-gpu.yaml  # Configuração da função Nuclio (GPU, ENV, modelo)
       ├── main.py            # Função HTTP que trata a requisição do CVAT
-      ├── model_handler.py   # Classe que roda a inferência do SAM2
-      └── requirements.txt   # Dependências da função
+      └──  model_handler.py   # Classe que roda a inferência do SAM2
 ```
 
 ---
