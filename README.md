@@ -26,7 +26,7 @@ cd cvat
 Utilizar o `docker-compose.serverless.yml` para ativar os modelos automáticos (YOLO, DEXTR, SAM, etc):
 
 ```bash
-docker compose -f docker-compose.yml -f components/serverless/docker-compose.serverless.yml up -d --build
+docker compose -f docker-compose.yml -f components/serverless/docker-compose.serverless.yml -f docker-compose.custom.override.yml up -d --build
 ```
 
 > ⚠️ É necessário aguardar o download e inicialização de todos os containers (pode levar alguns minutos na primeira execução).
