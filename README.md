@@ -32,7 +32,7 @@ cd cvat
 Os arquivos `docker-compose.yml`, `docker-compose.serverless.yml` e `docker-compose.custom.override.yml` estão configurados para ativar os modelos automáticos (YOLOv3, DEXTR, SAM 1, SAM 2), IPs fixos, volumes compartilhados e cloud storage. Para subir o ambiente:
 
 ```bash
-docker compose -f docker-compose.yml -f components/serverless/docker-compose.serverless.yml -f docker-compose.custom.override.yml up -d --build
+docker compose -f docker-compose.yml -f docker-compose.serverless.yml -f docker-compose.custom.override.yml up -d --build
 ```
 
 > ⚠️ Aguarde o download e inicialização de todos os containers (pode levar alguns minutos na primeira execução).
