@@ -19,7 +19,7 @@ Este repositório/documentação demonstra como configurar localmente o **CVAT**
 Clone este repositório para obter os arquivos de configuração necessários:
 
 ```bash
-git clone <URL_DO_SEU_REPOSITORIO> cvat
+git clone https://github.com/renatowow14/cvat.git
 cd cvat
 ```
 
