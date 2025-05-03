@@ -38,8 +38,7 @@ services:
     volumes:
       - cvat_db:/var/lib/postgresql/data
     networks:
-      cvat:
-        ipv4_address: 172.20.0.2
+      - cvat
 
   cvat_redis_inmem:
     container_name: cvat_redis_inmem
@@ -53,8 +52,7 @@ services:
     volumes:
       - cvat_inmem_db:/data
     networks:
-      cvat:
-        ipv4_address: 172.20.0.3
+      - cvat
 
   cvat_redis_ondisk:
     container_name: cvat_redis_ondisk
@@ -67,8 +65,7 @@ services:
     volumes:
       - cvat_cache_db:/var/lib/kvrocks/data
     networks:
-      cvat:
-        ipv4_address: 172.20.0.4
+      - cvat
 
   cvat_server:
     container_name: cvat_server
@@ -99,7 +96,6 @@ services:
       - cvat_logs:/home/django/logs
     networks:
       cvat:
-        ipv4_address: 172.20.0.30
         aliases:
           - cvat-server
 
@@ -118,8 +114,7 @@ services:
       - cvat_keys:/home/django/keys
       - cvat_logs:/home/django/logs
     networks:
-      cvat:
-        ipv4_address: 172.20.0.6
+      - cvat
 
   cvat_worker_import:
     container_name: cvat_worker_import
@@ -135,8 +130,7 @@ services:
       - cvat_keys:/home/django/keys
       - cvat_logs:/home/django/logs
     networks:
-      cvat:
-        ipv4_address: 172.20.0.7
+      - cvat
 
   cvat_worker_export:
     container_name: cvat_worker_export
@@ -152,8 +146,7 @@ services:
       - cvat_keys:/home/django/keys
       - cvat_logs:/home/django/logs
     networks:
-      cvat:
-        ipv4_address: 172.20.0.8
+      - cvat
 
   cvat_worker_annotation:
     container_name: cvat_worker_annotation
@@ -169,8 +162,7 @@ services:
       - cvat_keys:/home/django/keys
       - cvat_logs:/home/django/logs
     networks:
-      cvat:
-        ipv4_address: 172.20.0.9
+      - cvat
 
   cvat_worker_webhooks:
     container_name: cvat_worker_webhooks
@@ -186,8 +178,7 @@ services:
       - cvat_keys:/home/django/keys
       - cvat_logs:/home/django/logs
     networks:
-      cvat:
-        ipv4_address: 172.20.0.10
+      - cvat
 
   cvat_worker_quality_reports:
     container_name: cvat_worker_quality_reports
@@ -203,8 +194,7 @@ services:
       - cvat_keys:/home/django/keys
       - cvat_logs:/home/django/logs
     networks:
-      cvat:
-        ipv4_address: 172.20.0.11
+      - cvat
 
   cvat_worker_chunks:
     container_name: cvat_worker_chunks
@@ -220,8 +210,7 @@ services:
       - cvat_keys:/home/django/keys
       - cvat_logs:/home/django/logs
     networks:
-      cvat:
-        ipv4_address: 172.20.0.12
+      - cvat
 
   cvat_worker_consensus:
     container_name: cvat_worker_consensus
@@ -237,8 +226,7 @@ services:
       - cvat_keys:/home/django/keys
       - cvat_logs:/home/django/logs
     networks:
-      cvat:
-        ipv4_address: 172.20.0.13
+      - cvat
 
   cvat_ui:
     container_name: cvat_ui
@@ -252,8 +240,7 @@ services:
       traefik.http.routers.cvat-ui.rule: PathPrefix(`/`)
       traefik.http.routers.cvat-ui.entrypoints: web
     networks:
-      cvat:
-        ipv4_address: 172.20.0.14
+      - cvat
 
   traefik:
     image: traefik:v3.3
@@ -288,8 +275,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./components/analytics/grafana_conf.yml:/etc/traefik/rules/grafana_conf.yml:ro
     networks:
-      cvat:
-        ipv4_address: 172.20.0.15
+      - cvat
     logging:
       driver: "json-file"
       options:
@@ -302,7 +288,6 @@ services:
     restart: always
     networks:
       cvat:
-        ipv4_address: 172.20.0.16
         aliases:
           - opa
     command:
@@ -323,7 +308,6 @@ services:
       <<: *clickhouse-env
     networks:
       cvat:
-        ipv4_address: 172.20.0.17
         aliases:
           - clickhouse
     volumes:
@@ -340,7 +324,6 @@ services:
       <<: *clickhouse-env
     networks:
       cvat:
-        ipv4_address: 172.20.0.18
         aliases:
           - vector
     volumes:
@@ -399,7 +382,6 @@ services:
         exec /run.sh
     networks:
       cvat:
-        ipv4_address: 172.20.0.19
         aliases:
           - grafana
 
@@ -419,7 +401,6 @@ services:
     command: server /data --console-address ":9001" --address ":9000"
     networks:
       cvat:
-        ipv4_address: 172.20.0.20
         aliases:
           - minio
 
