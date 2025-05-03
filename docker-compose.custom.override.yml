@@ -1,25 +1,122 @@
-version: '3.8'
-
 services:
-  cvat_server:
-    volumes:
-      - cvat_share:/home/django/share:ro
+  cvat_clickhouse:
+    networks:
+      cvat:
+        ipv4_address: 172.20.0.2
 
-  cvat_worker_import:
+  cvat_db:
+    networks:
+      cvat:
+        ipv4_address: 172.20.0.3
+
+  cvat_redis_inmem:
+    networks:
+      cvat:
+        ipv4_address: 172.20.0.7
+
+  cvat_redis_ondisk:
+    networks:
+      cvat:
+        ipv4_address: 172.20.0.11
+
+  traefik:
+    networks:
+      cvat:
+        ipv4_address: 172.20.0.6
+    ports:
+      - 8080:8080
+      - 8090:8090
+
+  cvat_opa:
+    networks:
+      cvat:
+        ipv4_address: 172.20.0.8
+
+  cvat_vector:
+    networks:
+      cvat:
+        ipv4_address: 172.20.0.9
+
+  cvat_grafana:
+    networks:
+      cvat:
+        ipv4_address: 172.20.0.10
+
+  cvat_worker_utils:
+    networks:
+      cvat:
+        ipv4_address: 172.20.0.12
     volumes:
       - cvat_share:/home/django/share:ro
 
   cvat_worker_export:
+    networks:
+      cvat:
+        ipv4_address: 172.20.0.13
     volumes:
       - cvat_share:/home/django/share:ro
 
-  cvat_worker_annotation:
+  cvat_worker_webhooks:
+    networks:
+      cvat:
+        ipv4_address: 172.20.0.14
     volumes:
       - cvat_share:/home/django/share:ro
+
+  cvat_worker_import:
+    networks:
+      cvat:
+        ipv4_address: 172.20.0.15
+    volumes:
+      - cvat_share:/home/django/share:ro
+
+  cvat_worker_quality_reports:
+    networks:
+      cvat:
+        ipv4_address: 172.20.0.17
+    volumes:
+      - cvat_share:/home/django/share:ro
+
+  cvat_ui:
+    networks:
+      cvat:
+        ipv4_address: 172.20.0.18
 
   cvat_worker_chunks:
+    networks:
+      cvat:
+        ipv4_address: 172.20.0.19
     volumes:
       - cvat_share:/home/django/share:ro
+
+  minio:
+    networks:
+      cvat:
+        ipv4_address: 172.20.0.20
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+      MINIO_SERVER_URL: http://172.20.0.20:9000
+    volumes:
+      - /mnt/minio-data:/data
+    command: server /data --console-address ":9001" --address ":9000"
+
+  cvat_worker_consensus:
+    networks:
+      cvat:
+        ipv4_address: 172.20.0.21
+    volumes:
+      - cvat_share:/home/django/share:ro
+
+networks:
+  cvat:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
 
 volumes:
   cvat_share:
