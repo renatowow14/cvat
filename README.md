@@ -329,7 +329,7 @@ O SAM 2 é configurado em duas pastas:
      ```
    - Implante:
      ```bash
-     cd /root/cvat_renato/cvat
+     cd cvat
      ./deploy_gpu.sh sam2/nuclio --build
      ```
    - Reinicie o CVAT:
