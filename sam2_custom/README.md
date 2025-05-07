@@ -202,4 +202,4 @@ sequenceDiagram
 
 - [Segment Anything 2](https://github.com/facebookresearch/segment-anything-2)
 - [CVAT Docs](https://docs.cvat.ai/)
-- [Nuclio Docs](https://nuclio.io/docs/latest/
+- [Nuclio Docs](https://nuclio.io/docs/latest/)
