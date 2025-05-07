@@ -23,7 +23,7 @@ cd cvat
 Os arquivos `docker-compose.yml`, `docker-compose.serverless.yml`, e `docker-compose.custom.override.yml` configuram o CVAT com modelos (YOLOv3, DEXTR, SAM 1, SAM 2), IPs fixos, volume compartilhado, e cloud storage. Para subir:
 
 ```bash
-docker compose -f docker-compose.yml -f components/serverless/docker-compose.serverless.yml -f docker-compose.custom.override.yml up -d --build
+docker compose -f docker-compose.yml -f docker-compose.serverless.yml -f docker-compose.custom.override.yml up -d --build
 ```
 
 > ⚠️ Aguarde o download e inicialização dos containers (pode levar alguns minutos).
