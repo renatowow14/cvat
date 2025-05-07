@@ -70,8 +70,8 @@ Para acessar o CVAT via `http://192.168.1.15:8080`:
 
 4. **Reiniciar os Serviços**:
    ```bash
-   docker compose -f docker-compose.yml -f components/serverless/docker-compose.serverless.yml -f docker-compose.custom.override.yml down
-   docker compose -f docker-compose.yml -f components/serverless/docker-compose.serverless.yml -f docker-compose.custom.override.yml up -d --build
+   docker compose -f docker-compose.yml -f docker-compose.serverless.yml -f docker-compose.custom.override.yml down
+   docker compose -f docker-compose.yml -f docker-compose.serverless.yml -f docker-compose.custom.override.yml up -d --build
    ```
 
 Acesse: `http://192.168.1.15:8080`
@@ -153,7 +153,7 @@ Para facilitar importação/exportação de dados:
 
 3. **Subir o CVAT**:
    ```bash
-   docker compose -f docker-compose.yml -f components/serverless/docker-compose.serverless.yml -f docker-compose.custom.override.yml up -d --build
+   docker compose -f docker-compose.yml -f docker-compose.serverless.yml -f docker-compose.custom.override.yml up -d --build
    ```
 
 4. **Testar o Volume**:
@@ -334,7 +334,7 @@ O SAM 2 é configurado em duas pastas:
      ```
    - Reinicie o CVAT:
      ```bash
-     docker compose -f docker-compose.yml -f components/serverless/docker-compose.serverless.yml -f docker-compose.custom.override.yml restart
+     docker compose -f docker-compose.yml -f docker-compose.serverless.yml -f docker-compose.custom.override.yml restart
      ```
    - Verifique os logs:
      ```bash
@@ -371,12 +371,12 @@ Os arquivos em `sam2_custom/nuclio` foram modificados para viabilizar o SAM 2 na
      ```
    - Implante:
      ```bash
-     cd /root/cvat_renato/cvat
-     ./deploy_gpu.sh sam2_custom/nuclio --build
+     cd cvat/sam2_custom
+     ./deploy_gpu.sh sam2/nuclio --build
      ```
    - Reinicie o CVAT:
      ```bash
-     docker compose -f docker-compose.yml -f components/serverless/docker-compose.serverless.yml -f docker-compose.custom.override.yml restart
+     docker compose -f docker-compose.yml -f docker-compose.serverless.yml -f docker-compose.custom.override.yml restart
      ```
    - Verifique os logs:
      ```bash
@@ -467,7 +467,7 @@ sequenceDiagram
   ```bash
   sudo netstat -tulnp | grep 8080
   sudo kill -9 <PID>
-  docker compose -f docker-compose.yml -f components/serverless/docker-compose.serverless.yml -f docker-compose.custom.override.yml up -d
+  docker compose -f docker-compose.yml -f docker-compose.serverless.yml -f docker-compose.custom.override.yml up -d
   ```
 
 ### 2. Cloud Storage Não Conecta
@@ -524,8 +524,8 @@ sequenceDiagram
     ```
   - Reinicie:
     ```bash
-    docker compose -f docker-compose.yml -f components/serverless/docker-compose.serverless.yml -f docker-compose.custom.override.yml down
-    docker compose -f docker-compose.yml -f components/serverless/docker-compose.serverless.yml -f docker-compose.custom.override.yml up -d
+    docker compose -f docker-compose.yml -f docker-compose.serverless.yml -f docker-compose.custom.override.yml down
+    docker compose -f docker-compose.yml -f docker-compose.serverless.yml -f docker-compose.custom.override.yml up -d
     ```
 
 ## 📚 Referências
